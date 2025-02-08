@@ -1,49 +1,68 @@
 import torch 
 import numpy as np
 
-torch.manual_seed(42) # for reproducability
-ndims = 4
-queries = torch.rand((5,ndims)) # 5 words each of dim 4
-queries
+def attention(query):
+    # query, key and val is same, autoregressive
+    ndims = query.size(-1)
+    key = val = query.detach().clone()
+    scaled_dot_prod = torch.matmul(query, key.T) / np.sqrt(ndims)
 
-keys = queries.detach().clone() # first detach tensor from computation graph, then clone it 
-keys
+    # softmax
+    e_scaled = torch.exp(scaled_dot_prod - scaled_dot_prod.max(dim=-1, keepdim=True).values)
+    softmax = e_scaled / e_scaled.sum(dim=-1, keepdim=True)
 
-# Q * K^T
-mat_mult = torch.matmul(queries, keys.T) # (5,4) * (4, 5) => (5,5) 
-mat_mult
+    weights = torch.matmul(softmax, val)
+    return weights 
 
-'''
-this part is different from the default dot-product attention
-default one has * sqrt(ndims), not / sqrt(ndims) 
-reason for division, large values of ndims leads to
-softmax of dimension multipied mat mult to exteremly small gradients
-'''
-# (Q * K^T) / sqrt(ndims)
-mat_mult_scaled = mat_mult / torch.sqrt(torch.tensor(ndims))
-mat_mult_scaled = mat_mult / np.sqrt(ndims) # instead of creating tensors in each call
-mat_mult_scaled
-torch.softmax(mat_mult_scaled, dim=1)
+if __name__ == '__main__':
+    torch.manual_seed(42) # for reproducability
+    ndims = 4
+    queries = torch.rand((5,ndims)) # 5 words each of dim 4
+    queries
 
-# softmax[(Q * K^T) / sqrt(ndims)]
-e_mat_mult_scaled = torch.exp(mat_mult_scaled) 
-sum_e_mat_mult_scaled = torch.sum(e_mat_mult_scaled, dim=1)
-# dim is the axis which will be collapsed on
-# dim=1 means collapsing the columns
-softmax = torch.divide(e_mat_mult_scaled, sum_e_mat_mult_scaled)
+    keys = queries.detach().clone() # first detach tensor from computation graph, then clone it 
+    keys
 
-values = queries.detach().clone() 
-values
+    # every word has (4,) representation
+    sentence = ['the', 'cat', 'sat', 'on', 'mat']
 
-attention_weights = torch.matmul(softmax, values) # (5,5) * (5,4) = (5,4) same dimension size with queries
-attention_weights
+    # Q * K^T
+    mat_mult = torch.matmul(queries, keys.T) # (5,4) * (4, 5) => (5,5) 
+    mat_mult
 
-torch.sum(torch.tensor([0.2471, 0.2690, 0.2150, 0.2304, 0.2452]))
+    '''
+    this part is different from the default dot-product attention
+    default one has * sqrt(ndims), not / sqrt(ndims) 
+    reason for division, large values of ndims leads to
+    softmax of dimension multipied mat mult to exteremly small gradients
+    '''
+    # (Q * K^T) / sqrt(ndims)
+    mat_mult_scaled = mat_mult / torch.sqrt(torch.tensor(ndims))
+    mat_mult_scaled = mat_mult / np.sqrt(ndims) # instead of creating tensors in each call
+    mat_mult_scaled
+    torch.softmax(mat_mult_scaled, dim=1)
 
-# quick recap of broadcasting 
-A = [[1,2,3], [4,5,6], [7,8,9]]
-sum_A = np.sum(A, axis=1, keepdims=True)
-A / sum_A 
+    # softmax[(Q * K^T) / sqrt(ndims)]
+    rowwise_max = mat_mult_scaled.max(dim=-1, keepdim=True).values
+    e_mat_mult_scaled = torch.exp(mat_mult_scaled - rowwise_max) 
+
+    sum_e_mat_mult_scaled = torch.sum(e_mat_mult_scaled, dim=1, keepdim=True)
+    # dim is the axis which will be collapsed on
+    # dim=1 means collapsing the columns
+    softmax = torch.divide(e_mat_mult_scaled, sum_e_mat_mult_scaled)
+
+    values = queries.detach().clone() 
+    values
+
+    attention_weights = torch.matmul(softmax, values) # (5,5) * (5,4) = (5,4) same dimension size with queries
+    attention_weights
+
+    torch.sum(torch.tensor([0.2471, 0.2690, 0.2150, 0.2304, 0.2452]))
+
+    # quick recap of broadcasting 
+    A = [[1,2,3], [4,5,6], [7,8,9]]
+    sum_A = np.sum(A, axis=1, keepdims=True)
+    A / sum_A 
 
 
 
