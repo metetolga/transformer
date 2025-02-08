@@ -1,15 +1,16 @@
 import torch 
 import numpy as np
 
-def attention(query):
+def attention(query, key, val):
     # query, key and val is same, autoregressive
     ndims = query.size(-1)
-    key = val = query.detach().clone()
     scaled_dot_prod = torch.matmul(query, key.T) / np.sqrt(ndims)
 
     # softmax
     e_scaled = torch.exp(scaled_dot_prod - scaled_dot_prod.max(dim=-1, keepdim=True).values)
     softmax = e_scaled / e_scaled.sum(dim=-1, keepdim=True)
+    print('e_scaled', e_scaled)
+    print('softmax', softmax)
 
     weights = torch.matmul(softmax, val)
     return weights 
