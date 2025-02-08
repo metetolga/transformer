@@ -55,7 +55,7 @@ if __name__ == '__main__':
     values
 
     attention_weights = torch.matmul(softmax, values) # (5,5) * (5,4) = (5,4) same dimension size with queries
-    attention_weights
+    print(f'attention weights: {attention_weights}') 
 
     torch.sum(torch.tensor([0.2471, 0.2690, 0.2150, 0.2304, 0.2452]))
 
