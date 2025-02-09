@@ -1,6 +1,7 @@
 import torch 
 import numpy as np
 
+# TODO: Markdown 
 def attention(query, key, val):
     # query, key and val is same, autoregressive
     ndims = query.size(-1)

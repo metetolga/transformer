@@ -2,6 +2,8 @@ import torch
 import numpy as np
 from scaled_dot_attention import attention
 
+# FIXME: all attention outputs resulting same rows, idk how
+# TODO: Markdown
 def get_weights(embed_dim):
     torch.manual_seed(42)
     ndims = embed_dim // 8
