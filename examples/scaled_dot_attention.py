@@ -4,13 +4,13 @@ import numpy as np
 def attention(query, key, val):
     # query, key and val is same, autoregressive
     ndims = query.size(-1)
-    scaled_dot_prod = torch.matmul(query, key.T) / np.sqrt(ndims)
+    # scaled_dot_prod = torch.matmul(query, key.T) 
+    scaled_dot_prod = torch.matmul(query, key.transpose(-2, -1)) / np.sqrt(ndims)
 
     # softmax
     e_scaled = torch.exp(scaled_dot_prod - scaled_dot_prod.max(dim=-1, keepdim=True).values)
     softmax = e_scaled / e_scaled.sum(dim=-1, keepdim=True)
-    print('e_scaled', e_scaled)
-    print('softmax', softmax)
+    # attention_weights = torch.nn.functional.softmax(scaled_dot_prod, dim=-1)
 
     weights = torch.matmul(softmax, val)
     return weights 
@@ -64,6 +64,7 @@ if __name__ == '__main__':
     A = [[1,2,3], [4,5,6], [7,8,9]]
     sum_A = np.sum(A, axis=1, keepdims=True)
     A / sum_A 
+
 
 
 
