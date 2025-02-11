@@ -33,5 +33,17 @@ class PosEncoding(nn.Module):
         x = x + self.enc[:, :x.shape[1], :]
         return self.dropout(x) 
 
+class LayerNormalization(nn.Module):
+    def __init__(self, features:int, eps:float=10**-6):
+        super().__init__()
+        self.eps = eps
+        self.alpha = nn.Parameter(torch.ones(features))
+        self.bias = nn.Parameter(torch.zeros(features))
+    
+    def forward(self, x:torch.Tensor):
+        mean = x.mean(dim=-1, keepdim=True) # (batch, seq, d_model) average over the last dim 
+        std = x.std(dim=-1, keepdim=True) # (batch, seq, d_model) average over the last dim 
+        return self.alpha * (x - mean) / (std + self.eps) - self.bias
+
 if __name__ == '__main__':
     pass
