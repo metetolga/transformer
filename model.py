@@ -24,7 +24,7 @@ class PosEncoding(nn.Module):
         self.dropout = nn.Dropout(p=dropout_rate)
         
         enc = torch.zeros(seq_len, d_model)
-        position = torch.arange(0, seq_len, dtype=float).unsqueeze(1)
+        position = torch.arange(0, seq_len, dtype=float).unsqueeze(1) # make it (seq_len, 1)
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(n)) / d_model)
         enc[:, 0::2] = torch.sin(position * div_term)
         enc[:, 1::2] = torch.cos(position * div_term)
@@ -86,7 +86,7 @@ class MultiheadAttention(nn.Module):
             attention_scores = dropout(attention_scores)
         return (attention_scores @ value), attention_scores
 
-    def forward(self, q, k, v, mask):
+    def forward(self, q, k, v, mask): # actually q, k, v are the same and they all maps to some values in representation-wise
         # (batch, seq, d_model) -> (batch, seq, d_model)
         qry = self.wq(q)
         key = self.wk(k)
@@ -102,6 +102,38 @@ class MultiheadAttention(nn.Module):
         x, self.attention_scores = MultiheadAttention.attention(qry, key, val, mask, self.dropout)
         x = x.transpose(1, 2).contiguous().view(x.shape[0], -1, self.h * self.d_k)
         return self.wo(x) # feed it into output neural network
+
+class ResidualConnection(nn.Module):
+    def __init__(self, features: int, dropout:float):
+        super().__init__()
+        self.dropout = nn.Dropout(dropout)
+        self.norm = LayerNormalization(features)
+
+    def forward(self, x, sublayer):
+        return x + self.dropout(sublayer(self.norm(x)))
+
+class EncoderBlock(nn.Module):
+    def __init__(self, features: int, self_attention_block:MultiheadAttention, feed_forward_block:FeedForward, dropout:float):
+        super().__init__()
+        self.self_attention_block = self_attention_block 
+        self.feed_forward_block = feed_forward_block
+        self.residual_connections = nn.ModuleList([ResidualConnection(features, dropout) for _ in range(2)])
+    
+    def forward(self, x, src_mask):
+        x = self.residual_connections[0](x, lambda x:self.self_attention_block(x, x, x, src_mask))
+        x = self.residual_connections[1](x, self.feed_forward_block)
+        return x
+
+class Encoder(nn.Module):
+    def __init__(self, features:int, layers:nn.ModuleList):
+        super().__init__()
+        self.layers = layers
+        self.norm = LayerNormalization(features)
+    
+    def forward(self, x, mask):
+        for layer in self.layers:
+            x = layer(x, mask)
+        return self.norm(x)
 
 if __name__ == '__main__':
     print('Welcome!')
