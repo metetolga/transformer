@@ -169,3 +169,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+tokenizer_en.json
+tokenizer_it.json
+
+opus_books_weights
+runs
