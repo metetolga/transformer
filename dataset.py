@@ -26,20 +26,15 @@ class TranslationDataset(Dataset):
         src_text = src_target_pair['translation'][self.src_lang]
         tgt_text = src_target_pair['translation'][self.tgt_lang]
 
-        # Transform the text into tokens
         enc_input_tokens = self.tokenizer_src.encode(src_text).ids
         dec_input_tokens = self.tokenizer_tgt.encode(tgt_text).ids
 
-        # Add sos, eos and padding to each sentence
-        enc_num_padding_tokens = self.seq - len(enc_input_tokens) - 2  # We will add <s> and </s>
-        # We will only add <s>, and </s> only on the label
+        enc_num_padding_tokens = self.seq - len(enc_input_tokens) - 2  
         dec_num_padding_tokens = self.seq - len(dec_input_tokens) - 1
 
-        # Make sure the number of padding tokens is not negative. If it is, the sentence is too long
         if enc_num_padding_tokens < 0 or dec_num_padding_tokens < 0:
             raise ValueError("Sentence is too long")
 
-        # Add <s> and </s> token
         encoder_input = torch.cat(
             [
                 self.sos_token,
@@ -50,7 +45,6 @@ class TranslationDataset(Dataset):
             dim=0,
         )
 
-        # Add only <s> token
         decoder_input = torch.cat(
             [
                 self.sos_token,
@@ -60,7 +54,6 @@ class TranslationDataset(Dataset):
             dim=0,
         )
 
-        # Add only </s> token
         label = torch.cat(
             [
                 torch.tensor(dec_input_tokens, dtype=torch.int64),
@@ -70,7 +63,6 @@ class TranslationDataset(Dataset):
             dim=0,
         )
 
-        # Double check the size of the tensors to make sure they are all seq long
         assert encoder_input.size(0) == self.seq
         assert decoder_input.size(0) == self.seq
         assert label.size(0) == self.seq

@@ -20,11 +20,11 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(dropout)
         
         pe = torch.zeros(seq, d_model)
-        position = torch.arange(0, seq, dtype=torch.float).unsqueeze(1) # (seq, 1)
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)) # (d_model / 2)
+        position = torch.arange(0, seq, dtype=torch.float).unsqueeze(1) 
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)) 
         pe[:, 0::2] = torch.sin(position * div_term) 
         pe[:, 1::2] = torch.cos(position * div_term) 
-        pe = pe.unsqueeze(0) # (1, seq, d_model)
+        pe = pe.unsqueeze(0) 
         self.register_buffer('pe', pe)
 
     def forward(self, x):
@@ -40,8 +40,8 @@ class LayerNormalization(nn.Module):
         self.bias = nn.Parameter(torch.zeros(features)) 
 
     def forward(self, x):
-        mean = x.mean(dim = -1, keepdim = True) # (batch, seq, 1)
-        std = x.std(dim = -1, keepdim = True) # (batch, seq, 1)
+        mean = x.mean(dim = -1, keepdim = True) 
+        std = x.std(dim = -1, keepdim = True) 
         return self.alpha * (x - mean) / (std + self.eps) + self.bias
     
 class FeedForwardBlock(nn.Module):
@@ -64,10 +64,10 @@ class MultiHeadAttentionBlock(nn.Module):
         assert d_model % h == 0, "d_model is not divisible by h"
 
         self.d_k = d_model // h 
-        self.w_q = nn.Linear(d_model, d_model, bias=False) # Wq
-        self.w_k = nn.Linear(d_model, d_model, bias=False) # Wk
-        self.w_v = nn.Linear(d_model, d_model, bias=False) # Wv
-        self.w_o = nn.Linear(d_model, d_model, bias=False) # Wo
+        self.w_q = nn.Linear(d_model, d_model, bias=False) 
+        self.w_k = nn.Linear(d_model, d_model, bias=False)
+        self.w_v = nn.Linear(d_model, d_model, bias=False)
+        self.w_o = nn.Linear(d_model, d_model, bias=False)
         self.dropout = nn.Dropout(dropout)
 
     @staticmethod
