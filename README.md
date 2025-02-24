@@ -33,3 +33,5 @@ Instead of relying solely on the last hidden state, attention allows the model t
 Thus, attention provides direct access to all past information, making it easier to capture long-term dependencies.
 
 ## Transformer  
+
+[[WORK IN PROGRESS]]
