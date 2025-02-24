@@ -3,7 +3,6 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 
 class TranslationDataset(Dataset):
-
     def __init__(self, ds, tokenizer_src, tokenizer_tgt, src_lang, tgt_lang, seq):
         super().__init__()
         self.seq = seq

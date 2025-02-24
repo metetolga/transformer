@@ -115,7 +115,6 @@ class EncoderBlock(nn.Module):
         return x
     
 class Encoder(nn.Module):
-
     def __init__(self, features: int, layers: nn.ModuleList) -> None:
         super().__init__()
         self.layers = layers
@@ -127,7 +126,6 @@ class Encoder(nn.Module):
         return self.norm(x)
 
 class DecoderBlock(nn.Module):
-
     def __init__(self, features: int, self_attention_block: MultiHeadAttentionBlock, cross_attention_block: MultiHeadAttentionBlock, feed_forward_block: FeedForwardBlock, dropout: float) -> None:
         super().__init__()
         self.self_attention_block = self_attention_block
@@ -142,7 +140,6 @@ class DecoderBlock(nn.Module):
         return x
     
 class Decoder(nn.Module):
-
     def __init__(self, features: int, layers: nn.ModuleList) -> None:
         super().__init__()
         self.layers = layers
@@ -154,7 +151,6 @@ class Decoder(nn.Module):
         return self.norm(x)
     
 class ProjectionLayer(nn.Module):
-
     def __init__(self, d_model, vocab_size) -> None:
         super().__init__()
         self.proj = nn.Linear(d_model, vocab_size)
@@ -163,7 +159,6 @@ class ProjectionLayer(nn.Module):
         return self.proj(x)
     
 class Transformer(nn.Module):
-
     def __init__(self, encoder: Encoder, decoder: Decoder, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings, src_pos: PositionalEncoding, tgt_pos: PositionalEncoding, projection_layer: ProjectionLayer) -> None:
         super().__init__()
         self.encoder = encoder
